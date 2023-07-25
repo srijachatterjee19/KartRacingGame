@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -80,15 +78,6 @@ public class GameServer {
                         s.getOutputStream()
                 );
 
-                ObjectOutput objectOutput = new ObjectOutputStream(
-                        s.getOutputStream()
-                );
-
-                ObjectInput objectInput = new ObjectInputStream(
-                        s.getInputStream()
-                );
-
-
                 numPlayers++;
                 //numPlayers will update to 1 after first player joins,
                 // it send out player number to the other player
@@ -127,7 +116,6 @@ public class GameServer {
                     Thread readThread2 = new Thread(ReadRunnable2);
                     readThread1.start();
                     readThread2.start();
-
 
                     Thread writeThread1 = new Thread(WriteRunnable1);
                     Thread writeThread2 = new Thread(WriteRunnable2);
@@ -174,7 +162,6 @@ public class GameServer {
                 while (true) {
                     //send and receive the karts
                     sendEnemyKart();
-//                    sendForeignKart();
                     try {
                         Thread.sleep(1);
                     } catch (InterruptedException e) {
@@ -206,7 +193,6 @@ public class GameServer {
                 dataOut.writeInt(kart1PositionY);
                 dataOut.writeInt(kart1Direction);
                 dataOut.flush();
-//                sendMessage("ping");
             }
         }
 

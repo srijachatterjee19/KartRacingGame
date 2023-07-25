@@ -274,9 +274,8 @@ public class PlayerServer {
             try {
                 while (true) {//
                     sendOwnKart();
-
                     try {
-                        Thread.sleep(25);
+                        Thread.sleep(1);
                     } catch (InterruptedException e) {
                     }
 
@@ -288,7 +287,7 @@ public class PlayerServer {
         }
 
         //send own kart co-ordinates to the Game Server
-        public synchronized void sendOwnKart() throws IOException {
+        public void sendOwnKart() throws IOException {
             if (ownKart != null) {
                 dataOut.writeInt(ownKart.getPositionX());
                 dataOut.writeInt(ownKart.getPositionY());
@@ -296,7 +295,7 @@ public class PlayerServer {
                 dataOut.flush();
             }
             try {
-                Thread.sleep(25);
+                Thread.sleep(1);
             } catch (InterruptedException ex) {
                 System.out.println("InterruptedException from WTS run ()");
             }
@@ -305,7 +304,7 @@ public class PlayerServer {
 
     public static void main(String[] args) {
         PlayerServer playerServer = new PlayerServer();
-        String errorMessage = "Sprite designation need to be provided as either 'blue' or 'white'.";
+        String errorMessage = "Kart designation need to be provided as either 'blue' or 'white'.";
 
         if (args.length == 1) {
             kartType = args[0];
