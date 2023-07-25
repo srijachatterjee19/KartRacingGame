@@ -1,4 +1,4 @@
-#  🏁 MULTI-PLAYER KART RACING GAME  🏁
+#  MULTI-PLAYER KART RACING GAME  🎮
 
 ### Welcome to the Kart Racing Game! 🏎️
 
