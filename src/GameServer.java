@@ -5,62 +5,59 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 /*
-The Game Server is responsible for updating the co-ordinates for both the clients
-input streams used to receive messages from the clients
-
-1. after it receives the co-ordinates, it updates them
-2. after it receives any messages like "karts crashed" or "kart won" it updates label on JFrame
-3. the JFrame uses synchronised methods to update labels
-
-update this for kart object and same for the other one
-jpanel replaces the paint components and timer etc..
+The Game Server is responsible for updating the co-ordinates for both the players
+input streams used to receive messages from the clients after it receives the co-ordinates, it updates them
  */
+
 
 public class GameServer {
     // Declare a server socket and a client socket for the server
     private int numPlayers;
     private int maxPlayers;
 
-    private String kartType;
-
+    //Server JFrame
+    private GameServerGui gameGui;
+    //kart objects
     private Kart kartBlue = null;
     private Kart kartWhite = null;
+    private RaceTrack raceTrack;
 
+    //Runnables to read and write to the players
     private ReadFromClient ReadRunnable1;
     private ReadFromClient ReadRunnable2;
     private WriteToClient WriteRunnable1;
     private WriteToClient WriteRunnable2;
 
-    private int direction1,direction2; //store co-ordinates to send out to other player
-    private int kart1PostionX, kart1PositionY, kart2PositionX, kart2PositionY; //store co-ordinates to send out to other player
+    private int kart1Direction, Kart2Direction; //store kart direction for each player to send out to other player
+    private int kart1PostionX, kart1PositionY, kart2PositionX, kart2PositionY; //store kart co-ordinates for each player to send out to other player
 
-    private ServerSocket ss;
+    //server socket and sockets for each client
+    private ServerSocket serverSocket;
     private Socket socket1;
     private Socket socket2;
-    private GameServerGui gameGui;
-    private RaceTrack raceTrack;
 
 
     public GameServer() {
         System.out.println("===== GAME SERVER =====");
+        //initialise number of players and maximum number of players
         numPlayers = 0;
         maxPlayers = 2;
 
+        //initialise kart-coordinates for each kart
         kart1PostionX = 380;
         kart1PositionY = 550;
         kart2PositionX = 380;
         kart2PositionY = 500;
 
-        direction1 = 0;
-        direction2 = 0;
+        //initialise direction of each kart
+        kart1Direction = 0;
+        Kart2Direction = 0;
         raceTrack = new RaceTrack();
 
         // Try to open a server socket on port 4000
         try {
-            ss = new ServerSocket(45371);
+            serverSocket = new ServerSocket(45371);
         } catch (IOException e) {
             System.out.println("IOException from GameServer constructor");
         }
@@ -71,8 +68,10 @@ public class GameServer {
         try {
             System.out.println("Waiting for connections...");
 
+            //if number of players joined is 2, then create input,output,object input,object output streams to
+            // send out information to the players
             while (numPlayers < maxPlayers) {
-                Socket s = ss.accept();
+                Socket s = serverSocket.accept();
                 DataInputStream in = new DataInputStream(
                         s.getInputStream()
                 );
@@ -95,31 +94,37 @@ public class GameServer {
                 );
 
                 numPlayers++;
+                //numPlayers will update to 1 after first player joins,
+                // it send out player number to the other player
                 out.writeInt(numPlayers);
+
+                //server updates which player has joined
                 System.out.println("Player #" + numPlayers + "has connected.");
 
                 //after accepting connections,we would like to create the read and write from client objects
+                //numplayers is the playerID for the current player the runnable is being created for
                 ReadFromClient rfc = new ReadFromClient(numPlayers, in, objectInput, inputStream);
                 WriteToClient wtc = new WriteToClient(numPlayers, out, objectOutput);
-                //if you are the first player to connect
+
+                //if you are the player ID is 1, create kart objects,assign runnables and socket
                 if (numPlayers == 1) {
-                    kartType = "BlueKart";
                     kartBlue = new Kart("BlueKart", 0, 0, 380, 550);
                     socket1 = s;
                     ReadRunnable1 = rfc;
                     WriteRunnable1 = wtc;
                 } else {
-                    kartType = "WhiteKart";
                     kartWhite = new Kart("WhiteKart", 0, 0, 380, 500);
                     socket2 = s;
                     ReadRunnable2 = rfc;
                     WriteRunnable2 = wtc;
-                    //send start message belongs to the write to client object
+
+                    //send start message to the players "We now have 2 players. Go!"
                     //we want to send the start message after the second client has connected
+                    //The player waits for the start message, then starts the player threads
                     WriteRunnable1.sendStartMsg();
                     WriteRunnable2.sendStartMsg();
 
-                    //after both players have connected we can start the threads for reading and writing to the client
+                    //after both players have connected we can start the threads for reading and writing to the both players
                     Thread readThread1 = new Thread(ReadRunnable1);
                     Thread readThread2 = new Thread(ReadRunnable2);
                     readThread1.start();
@@ -138,7 +143,8 @@ public class GameServer {
     }
 
     public void setUpGui() {
-        //Create server game gui and pass the current instance and make JFrame visible
+        //Create server game gui JFrame and pass the current instance of the GameServer class
+        // add the game panel
         gameGui = new GameServerGui(this);
         gameGui.setPreferredSize(new Dimension(850, 750));
         gameGui.setTitle("Game Server");
@@ -154,20 +160,22 @@ public class GameServer {
         private String whichKartWonMessage = "";
         private String kartsCrashedMessage = "";
 
+        //timer is created and started
         public GamePanel() {
             Timer gameTimer = new Timer(10, this); //to update game
             gameTimer.start();
         }
 
+        //The racetrack and the karts are painted on the window
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g;
             raceTrack.drawRaceTrack(g);
             kartBlue.kartPositioned(g);
             kartWhite.kartPositioned(g);
             repaint();
         }
 
+        //actionPerformed repaints the window
         @Override
         public void actionPerformed(ActionEvent e) {
             repaint();
@@ -183,6 +191,7 @@ public class GameServer {
         }
 
         //call in server to update
+        //this method will be called from the run() to update the labels when karts win/crash
         public synchronized void updateGame() {
 //            System.out.println("update to jframe received");
         }
@@ -191,7 +200,7 @@ public class GameServer {
 
     //send out the co-ordinates
     //while loop to ensure co-ordinates are constantly updated
-    //use sleep to not overwhelm the thread
+    //use sleep to not overwhelm the thread **
     public class WriteToClient implements Runnable {
         private int playerID;
         private DataOutputStream dataOut;
@@ -212,15 +221,18 @@ public class GameServer {
                     //send and receive the karts
                     sendEnemyKart();
 //                    sendForeignKart();
-
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                    }
                 }
             } catch (IOException ex) {
                 System.out.println("IOException from RFC run ()");
             }
         }
 
-        //send start message
-        public void sendStartMsg() {
+        //send start message to client to start their threads
+        public synchronized void sendStartMsg() {
             try {
                 dataOut.writeUTF("We now have 2 players. Go!");
             } catch (IOException ex) {
@@ -228,16 +240,17 @@ public class GameServer {
             }
         }
 
+        //send co-ordinates of karts to each player, player 2 receives kart1 updates and player 1 receives kart 2
         public void sendEnemyKart() throws IOException {
             if (playerID == 1) {
                 dataOut.writeInt(kart2PositionX);
                 dataOut.writeInt(kart2PositionY);
-                dataOut.writeInt(direction2);
+                dataOut.writeInt(Kart2Direction);
                 dataOut.flush();
             } else {
                 dataOut.writeInt(kart1PostionX);
                 dataOut.writeInt(kart1PositionY);
-                dataOut.writeInt(direction1);
+                dataOut.writeInt(kart1Direction);
                 dataOut.flush();
             }
         }
@@ -253,11 +266,9 @@ public class GameServer {
         }
     }
 
-    //gets the co-ordinates from client
-    // receives the co-ordinates
+    //receives the co-ordinates from client
     public class ReadFromClient implements Runnable {
         private int playerID;
-        private String k;//kart type
         private DataInputStream dataIn;
         private ObjectInput objIn;
         private BufferedReader inp;
@@ -280,20 +291,21 @@ public class GameServer {
             }
         }
 
-        public void updateKarts() throws IOException {
+        //updates the karts in its own game window
+        public synchronized void updateKarts() throws IOException {
             //receive kart objects and set it to player 1
             if (playerID == 1) {
                 kart1PostionX = dataIn.readInt();
                 kart1PositionY = dataIn.readInt();
 
-                direction1 = dataIn.readInt();
+                kart1Direction = dataIn.readInt();
                 kartBlue.setPositionX(dataIn.readInt());
                 kartBlue.setPositionY(dataIn.readInt());
                 kartBlue.setKartDirection(dataIn.readInt());
             } else {
                 kart2PositionX = dataIn.readInt();
                 kart2PositionY = dataIn.readInt();
-                direction2 = dataIn.readInt();
+                Kart2Direction = dataIn.readInt();
 
 
                 kartWhite.setPositionX(dataIn.readInt());
@@ -321,6 +333,3 @@ public class GameServer {
     }
 }
 
-//for the coordinates to be sent to the client through server, need 2 runnables, with 2 threads
-//each player ends up with 4
-//after setting up the runnables ,ready to send the coordinates of the players

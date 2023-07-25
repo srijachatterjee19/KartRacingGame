@@ -13,7 +13,7 @@ public class Game {
     Line2D outer_top = new Line2D.Double(50,100,800,100);
     Line2D outer_left = new Line2D.Double(50,100,50,600);
 
-
+    //kartsCollidesWithRaceTrack() updates the visuals for each player kart
     //kart's interaction with the racetrack boundaries and grass
     public void kartsCollidesWithRaceTrack(Kart kart)
     {
