@@ -51,19 +51,6 @@ public class PlayerServer {
             DataOutputStream out = new DataOutputStream(
                     clientSocket.getOutputStream()
             );
-            ObjectInput objectInput = new ObjectInputStream(
-                    clientSocket.getInputStream()
-            );
-
-            ObjectOutput objectOutput = new ObjectOutputStream(
-                    clientSocket.getOutputStream()
-            );
-
-//            BufferedReader inputStream = new BufferedReader(
-//                    new InputStreamReader(
-//                            clientSocket.getInputStream()
-//                    )
-//            );
 
             playerID = in.readInt(); //get playerID
             System.out.println("You are player#" + playerID);
@@ -72,8 +59,8 @@ public class PlayerServer {
             }
 
             //get to see the feedback of the runnables getting created
-            rfsRunnable = new ReadFromServer(in,objectInput);
-            wtsRunnable = new WriteToServer(out,objectOutput);
+            rfsRunnable = new ReadFromServer(in);
+            wtsRunnable = new WriteToServer(out);
             rfsRunnable.waitForStartMsg();
 
         } catch (UnknownHostException e) {
@@ -226,11 +213,9 @@ public class PlayerServer {
 
     public class ReadFromServer implements Runnable {
         private DataInputStream dataIn;
-        private ObjectInput objIn;
 
-        public ReadFromServer(DataInputStream in,ObjectInput objectInput) {
+        public ReadFromServer(DataInputStream in) {
             dataIn = in;
-            objIn = objectInput;
             System.out.println("RFS Runnable created");
         }
 
@@ -277,11 +262,9 @@ public class PlayerServer {
 
     public class WriteToServer implements Runnable {
         private DataOutputStream dataOut;
-        private ObjectOutput objOut;
 
-        public WriteToServer(DataOutputStream out,ObjectOutput objectOutput) {
+        public WriteToServer(DataOutputStream out) {
             dataOut = out;
-            objOut = objectOutput;
             System.out.println("WTS Runnable created");
         }
 

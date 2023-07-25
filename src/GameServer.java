@@ -99,8 +99,8 @@ public class GameServer {
 
                 //after accepting connections,we would like to create the read and write from client objects
                 //numplayers is the playerID for the current player the runnable is being created for
-                ReadFromClient rfc = new ReadFromClient(numPlayers, in, objectInput);
-                WriteToClient wtc = new WriteToClient(numPlayers, out, objectOutput);
+                ReadFromClient rfc = new ReadFromClient(numPlayers, in);
+                WriteToClient wtc = new WriteToClient(numPlayers, out);
 
                 //client handler object
 
@@ -160,12 +160,10 @@ public class GameServer {
     public class WriteToClient implements Runnable {
         private int playerID;
         private DataOutputStream dataOut;
-        private ObjectOutput objOut;
 
-        public WriteToClient(int pid, DataOutputStream out, ObjectOutput objectOutput) {
+        public WriteToClient(int pid, DataOutputStream out) {
             playerID = pid;
             dataOut = out;
-            objOut = objectOutput;
             System.out.println("WTC" + playerID + " Runnable created");
 
         }
@@ -227,12 +225,10 @@ public class GameServer {
     public class ReadFromClient implements Runnable {
         private int playerID;
         private DataInputStream dataIn;
-        private ObjectInput objIn;
 
-        public ReadFromClient(int pid, DataInputStream in, ObjectInput objectInput) {
+        public ReadFromClient(int pid, DataInputStream in) {
             playerID = pid;
             dataIn = in;
-            objIn = objectInput;
             System.out.println("RFC" + playerID + " Runnable created");
         }
 
