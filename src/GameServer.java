@@ -8,7 +8,6 @@ The Game Server is responsible for updating the co-ordinates for both the player
 input streams used to receive messages from the clients after it receives the co-ordinates, it updates them
  */
 
-
 public class GameServer {
     // Declare a server socket and a client socket for the server
     private int numPlayers;
@@ -54,7 +53,7 @@ public class GameServer {
         Kart2Direction = 0;
         raceTrack = new RaceTrack();
         game = new Game();
-        // Try to open a server socket on port 4000
+        // Try to open a server socket on port 45371
         try {
             serverSocket = new ServerSocket(45371);
         } catch (IOException e) {
@@ -206,7 +205,6 @@ public class GameServer {
             return message;
         }
     }
-
     //receives the co-ordinates from client
     public class ReadFromClient implements Runnable {
         private int playerID;
@@ -267,4 +265,3 @@ public class GameServer {
         gs.setUpGui();
     }
 }
-

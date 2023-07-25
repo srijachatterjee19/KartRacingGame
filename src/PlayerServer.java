@@ -17,7 +17,7 @@ input streams used to receive messages from the server, after it receives the co
 public class PlayerServer {
     private static String kartType;
     private RaceTrack raceTrack;
-    private Game game ;
+    private Game game;
     private Container contentPane;
     private DrawingComponent dc;
     private Timer animationTimer;
@@ -91,39 +91,6 @@ public class PlayerServer {
         contentPane.setPreferredSize(new Dimension(850, 650));
         dc = new DrawingComponent();
         contentPane.add(dc);
-        //menu bar with option to exit the game
-        JMenuBar menuBar = new JMenuBar();
-        JMenu menu = new JMenu("File");
-        JMenuItem exitMenuItem = new JMenuItem("Exit Game");
-        menu.add(exitMenuItem);
-        menuBar.add(menu);
-        gameGui.setJMenuBar(menuBar);
-
-        //invoked later when the client clicks exit from the exit menu
-        exitMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Show the popup message box
-                int result = JOptionPane.showConfirmDialog(gameGui,
-                        "Are you sure you want to exit the game?",
-                        "Exit Game",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.QUESTION_MESSAGE);
-
-                // Check the user's choice
-                if (result == JOptionPane.YES_OPTION) {
-                    // Close all windows and exit the application
-                    Window[] windows = Window.getWindows();
-                    for (Window window : windows) {
-                        window.dispose();
-                    }
-                    //Call serverHandler runnable method which sends a
-                    // message to the server saying client has left the game
-                    System.exit(0);
-                }
-            }
-        });
-
         gameGui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gameGui.pack();
         gameGui.setVisible(true);
