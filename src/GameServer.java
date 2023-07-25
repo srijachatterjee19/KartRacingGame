@@ -113,31 +113,31 @@ public class GameServer {
                 if (numPlayers == 1) {
                     kartBlue = new Kart("BlueKart", 0, 0, 380, 550);
                     socket1 = s;
-//                    ReadRunnable1 = rfc;
-//                    WriteRunnable1 = wtc;
+                    ReadRunnable1 = rfc;
+                    WriteRunnable1 = wtc;
                 } else {
                     kartWhite = new Kart("WhiteKart", 0, 0, 380, 500);
                     socket2 = s;
-//                    ReadRunnable2 = rfc;
-//                    WriteRunnable2 = wtc;
+                    ReadRunnable2 = rfc;
+                    WriteRunnable2 = wtc;
 
                     //send start message to the players "We now have 2 players. Go!"
                     //we want to send the start message after the second client has connected
                     //The player waits for the start message, then starts the player threads
-//                    WriteRunnable1.sendStartMsg();
-//                    WriteRunnable2.sendStartMsg();
+                    WriteRunnable1.sendStartMsg();
+                    WriteRunnable2.sendStartMsg();
 
                     //after both players have connected we can start the threads for reading and writing to the both players
-//                    Thread readThread1 = new Thread(ReadRunnable1);
-//                    Thread readThread2 = new Thread(ReadRunnable2);
-//                    readThread1.start();
-//                    readThread2.start();
-//
+                    Thread readThread1 = new Thread(ReadRunnable1);
+                    Thread readThread2 = new Thread(ReadRunnable2);
+                    readThread1.start();
+                    readThread2.start();
 
-//                    Thread writeThread1 = new Thread(WriteRunnable1);
-//                    Thread writeThread2 = new Thread(WriteRunnable2);
-//                    writeThread1.start();
-//                    writeThread2.start();
+
+                    Thread writeThread1 = new Thread(WriteRunnable1);
+                    Thread writeThread2 = new Thread(WriteRunnable2);
+                    writeThread1.start();
+                    writeThread2.start();
                 }
             }
             System.out.println("No longer accepting connections");
