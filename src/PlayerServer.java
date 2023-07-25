@@ -59,11 +59,11 @@ public class PlayerServer {
                     clientSocket.getOutputStream()
             );
 
-            BufferedReader inputStream = new BufferedReader(
-                    new InputStreamReader(
-                            clientSocket.getInputStream()
-                    )
-            );
+//            BufferedReader inputStream = new BufferedReader(
+//                    new InputStreamReader(
+//                            clientSocket.getInputStream()
+//                    )
+//            );
 
             playerID = in.readInt(); //get playerID
             System.out.println("You are player#" + playerID);
@@ -246,7 +246,7 @@ public class PlayerServer {
         }
         //message from server that notifies clients we can start
         //we want second player to connect before we send that string
-        public synchronized void waitForStartMsg() {
+        public void waitForStartMsg() {
             try {
                 String startMsg = dataIn.readUTF();
                 System.out.println("Message from server: " + startMsg);
@@ -261,7 +261,7 @@ public class PlayerServer {
 
         // reading information from the Game server to update
         // other player's kart co-ordinate and direction
-        public synchronized void receiveEnemyKart() throws IOException {
+        public void receiveEnemyKart() throws IOException {
 
             int foreignX = dataIn.readInt();
             int foreignY = dataIn.readInt();

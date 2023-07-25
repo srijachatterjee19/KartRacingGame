@@ -88,11 +88,6 @@ public class GameServer {
                         s.getInputStream()
                 );
 
-                BufferedReader inputStream = new BufferedReader(
-                        new InputStreamReader(
-                                s.getInputStream()
-                        )
-                );
 
                 numPlayers++;
                 //numPlayers will update to 1 after first player joins,
@@ -104,7 +99,7 @@ public class GameServer {
 
                 //after accepting connections,we would like to create the read and write from client objects
                 //numplayers is the playerID for the current player the runnable is being created for
-                ReadFromClient rfc = new ReadFromClient(numPlayers, in, objectInput, inputStream);
+                ReadFromClient rfc = new ReadFromClient(numPlayers, in, objectInput);
                 WriteToClient wtc = new WriteToClient(numPlayers, out, objectOutput);
 
                 //client handler object
@@ -193,7 +188,7 @@ public class GameServer {
         }
 
         //send start message to client to start their threads
-        public synchronized void sendStartMsg() {
+        public void sendStartMsg() {
             try {
                 dataOut.writeUTF("We now have 2 players. Go!");
             } catch (IOException ex) {
@@ -213,6 +208,7 @@ public class GameServer {
                 dataOut.writeInt(kart1PositionY);
                 dataOut.writeInt(kart1Direction);
                 dataOut.flush();
+//                sendMessage("ping");
             }
         }
 
@@ -232,13 +228,11 @@ public class GameServer {
         private int playerID;
         private DataInputStream dataIn;
         private ObjectInput objIn;
-        private BufferedReader inp;
 
-        public ReadFromClient(int pid, DataInputStream in, ObjectInput objectInput, BufferedReader inputStream) {
+        public ReadFromClient(int pid, DataInputStream in, ObjectInput objectInput) {
             playerID = pid;
             dataIn = in;
             objIn = objectInput;
-            inp = inputStream;
             System.out.println("RFC" + playerID + " Runnable created");
         }
 
@@ -253,13 +247,13 @@ public class GameServer {
         }
 
         //updates the karts in its own game window
-        public synchronized void updateKarts() throws IOException {
+        public void updateKarts() throws IOException {
             //receive kart objects and set it to player 1
             if (playerID == 1) {
                 kart1PostionX = dataIn.readInt();
                 kart1PositionY = dataIn.readInt();
-
                 kart1Direction = dataIn.readInt();
+
                 kartBlue.setPositionX(dataIn.readInt());
                 kartBlue.setPositionY(dataIn.readInt());
                 kartBlue.setKartDirection(dataIn.readInt());
@@ -267,7 +261,6 @@ public class GameServer {
                 kart2PositionX = dataIn.readInt();
                 kart2PositionY = dataIn.readInt();
                 Kart2Direction = dataIn.readInt();
-
 
                 kartWhite.setPositionX(dataIn.readInt());
                 kartWhite.setPositionY(dataIn.readInt());
@@ -277,7 +270,7 @@ public class GameServer {
 
         private String receiveMessage() {
             try {
-                return inp.readLine();
+                return dataIn.readLine();
             } catch (Exception e) {
                 System.out.println("Exception from GameServer receiveMessage()");
                 System.out.println(e.getMessage());
