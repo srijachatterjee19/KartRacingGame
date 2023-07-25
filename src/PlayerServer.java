@@ -29,7 +29,6 @@ public class PlayerServer {
     private static String responseLine = null;
     private ReadFromServer rfsRunnable;
     private WriteToServer wtsRunnable;
-    private ServerHandler serverHandler;
     private Socket clientSocket;
     private int playerID;
     private PlayerFrameGui gameGui;
@@ -73,12 +72,9 @@ public class PlayerServer {
             }
 
             //get to see the feedback of the runnables getting created
-//            rfsRunnable = new ReadFromServer(in,objectInput);
-//            wtsRunnable = new WriteToServer(out,objectOutput);
-//            rfsRunnable.waitForStartMsg();
-
-            serverHandler = new ServerHandler(in,objectInput,out,objectOutput,inputStream);
-            serverHandler.waitForStartMsg();
+            rfsRunnable = new ReadFromServer(in,objectInput);
+            wtsRunnable = new WriteToServer(out,objectOutput);
+            rfsRunnable.waitForStartMsg();
 
         } catch (UnknownHostException e) {
             System.err.println("Trying to connect to unknown host: " + serverHost);
@@ -136,7 +132,6 @@ public class PlayerServer {
                     }
                     //Call serverHandler runnable method which sends a
                     // message to the server saying client has left the game
-                    serverHandler.leftGame();
                     System.exit(0);
                 }
             }
@@ -321,191 +316,6 @@ public class PlayerServer {
                 Thread.sleep(25);
             } catch (InterruptedException ex) {
                 System.out.println("InterruptedException from WTS run ()");
-            }
-        }
-    }
-
-
-    //******************************************//
-    public class ServerHandler implements Runnable {
-        private DataInputStream dataIn;
-        private ObjectInput objIn;
-        private DataOutputStream dataOut;
-        private ObjectOutput objOut;
-        private BufferedReader inp;
-        private String line;
-
-        public ServerHandler(DataInputStream in,ObjectInput objectInput,DataOutputStream out,ObjectOutput objectOutput,BufferedReader inputStream){
-            dataIn = in;
-            objIn = objectInput;
-            dataOut = out;
-            objOut = objectOutput;
-            inp = inputStream;
-            System.out.println("ServerHandler Runnable created");
-        }
-
-        @Override
-        public void run() {
-//           // Write data to the socket
-
-            initialise();
-            responseLine = "pong";
-
-            do {
-                responseLine = receiveMessage();
-                if (responseLine != null) {
-                    System.out.println("SERVER: " + responseLine);
-                    handleServerResponse(responseLine);
-                }
-
-                if (responseLine != null & responseLine.equals("other_player_left_game")) {
-                    shutdownClient();
-                    break;
-                }
-
-            } while (true);
-        }
-
-
-        public void waitForStartMsg() {
-            try {
-                String startMsg = dataIn.readUTF();
-                System.out.println("Message from server: " + startMsg);
-                Thread thread = new Thread (serverHandler);
-                thread.start();
-
-            } catch (IOException ex) {
-                System.out.println("IOException from ServerHandler waitForStartMsg()");
-            }
-        }
-
-        public void leftGame(){
-            sendMessage("client_left_game");
-        }
-
-        public void receiveEnemyKart() {
-            try {
-                int foreignX = dataIn.readInt();
-                int foreignY = dataIn.readInt();
-                int foreignDirection = dataIn.readInt();
-                if(foreignKart != null){
-                    foreignKart.setPositionX(foreignX);
-                    foreignKart.setPositionY(foreignY);
-                    foreignKart.setKartDirection(foreignDirection);
-                }
-            } catch (IOException ex) {
-                System.out.println("IOException from ServerHandler receiveEnemyKart()");
-            }
-        }
-
-        public void sendOwnKart() throws IOException {
-
-                if (ownKart != null) {
-                    dataOut.writeInt(ownKart.getPositionX());
-                    dataOut.writeInt(ownKart.getPositionY());
-                    dataOut.writeInt(ownKart.getKartDirection());
-                    dataOut.flush();
-                }
-//                sendMessage("own_kart_update");
-//                sendKart();
-//                receiveForeignKart();
-//            try {
-//                Thread.sleep(25);
-//            } catch (InterruptedException ex) {
-//                System.out.println("InterruptedException from waitForStartMsg() threadsleep");
-//            }
-        }
-
-        public void initialise() {
-            // initialise our client's own kart object
-    //        ownKart = new Kart(kartType);
-            sendMessage("ping");
-//            sendKart();
-//            sendMessage("own_kart_update");
-//            receiveForeignKart();
-        }
-
-        private void sendKart() {
-                try {
-                    objOut.writeObject(ownKart);
-                    objOut.flush();
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
-            }
-    //    private void sendOwnKart() {
-    //        sendMessage("own_kart_update");
-    //        sendKart();
-    //        receiveForeignKart();
-    //    }
-        private void receiveOwnKart() {
-            try {
-                ownKart = (Kart) objIn.readObject();
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-        private void receiveForeignKart() {
-            try {
-                foreignKart = (Kart) objIn.readObject();
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-        private String receiveMessage() {
-            try {
-                return dataIn.readLine();
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                return null;
-            }
-        }
-        private void sendMessage(String message) {
-                try {
-                    dataOut.writeBytes(message + "\n");
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
-            }
-        private static void shutdownClient() {
-                // shutdown script
-                System.exit(0);
-            }
-
-        private void handleServerResponse(String response) {
-            switch (response) {
-                case "pong":
-                    //test
-                    sendMessage("pong");
-                    try {
-                        Thread.sleep(1000);
-                    } catch (Exception e) {
-                    }
-                    break;
-
-                case "own_kart_update":
-//                    receiveOwnKart();
-//                    sendOwnKart();
-//                    sendMessage("foreign_kart_update");
-                    try {
-                        Thread.sleep(1000);
-                    } catch (Exception e) {
-                    }
-                    break;
-
-                case "foreign_kart_update":
-//                    receiveForeignKart();
-//                    sendOwnKart();
-//                    sendMessage("own_kart_update");
-                    break;
-
-                case "karts_crashed":
-                    break;
-                    //if blue kart wins
-                case "blue_kart_won":
-                    break;
-                case "white_kart_won":
-                    break;
             }
         }
     }
