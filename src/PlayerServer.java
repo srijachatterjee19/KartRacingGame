@@ -17,27 +17,29 @@ input streams used to receive messages from the server, after it receives the co
 public class PlayerServer {
     private static String kartType;
     private RaceTrack raceTrack;
-
-    private static Kart ownKart;
-    private static Kart foreignKart;
-    private static String responseLine;
-
+    private Game game ;
     private Container contentPane;
     private DrawingComponent dc;
     private Timer animationTimer;
+
+
+    private static Kart ownKart;
+    private static Kart foreignKart;
+
+    private static String responseLine = null;
     private ReadFromServer rfsRunnable;
     private WriteToServer wtsRunnable;
-    private ServerHandler runnable;
+    private ServerHandler serverHandler;
     private Socket clientSocket;
     private int playerID;
     private PlayerFrameGui gameGui;
 
     private static String serverHost = "localhost";
 
-    Game game = new Game();
 
     public PlayerServer() {
         raceTrack = new RaceTrack();
+        game = new Game();
     }
 
     public void connectToServer() {
@@ -71,9 +73,12 @@ public class PlayerServer {
             }
 
             //get to see the feedback of the runnables getting created
-            rfsRunnable = new ReadFromServer(in,objectInput);
-            wtsRunnable = new WriteToServer(out,objectOutput);
-            rfsRunnable.waitForStartMsg();
+//            rfsRunnable = new ReadFromServer(in,objectInput);
+//            wtsRunnable = new WriteToServer(out,objectOutput);
+//            rfsRunnable.waitForStartMsg();
+
+            serverHandler = new ServerHandler(in,objectInput,out,objectOutput,inputStream);
+            serverHandler.waitForStartMsg();
 
         } catch (UnknownHostException e) {
             System.err.println("Trying to connect to unknown host: " + serverHost);
@@ -129,6 +134,9 @@ public class PlayerServer {
                     for (Window window : windows) {
                         window.dispose();
                     }
+                    //Call serverHandler runnable method which sends a
+                    // message to the server saying client has left the game
+                    serverHandler.leftGame();
                     System.exit(0);
                 }
             }
@@ -156,7 +164,6 @@ public class PlayerServer {
         animationTimer = new Timer(interval, al);
         animationTimer.start();
     }
-
     //the keys to control own kart is assigned here
     public void setUpKeyListener() {
         KeyListener kl = new KeyListener() {
@@ -204,7 +211,7 @@ public class PlayerServer {
         contentPane.setFocusable(true);
     }
 
-    //JComponent will draw the karts and the racetrack and kee prepainting it
+    //JComponent will draw the karts and the racetrack and keep re-painting it
     public class DrawingComponent extends JComponent {
         protected void paintComponent(Graphics g) {
             raceTrack.drawRaceTrack(g);
@@ -213,7 +220,6 @@ public class PlayerServer {
             repaint();
         }
     }
-
     public class PlayerFrameGui extends JFrame {
         public PlayerFrameGui(PlayerServer playerFrame) {
             setTitle("Player #" + playerID);
@@ -222,7 +228,6 @@ public class PlayerServer {
             setVisible(true);
         }
     }
-
 
     public class ReadFromServer implements Runnable {
         private DataInputStream dataIn;
@@ -320,8 +325,8 @@ public class PlayerServer {
         }
     }
 
-    //attempting to combine the runnables here :
-//    ******************************************
+
+    //******************************************//
     public class ServerHandler implements Runnable {
         private DataInputStream dataIn;
         private ObjectInput objIn;
@@ -336,81 +341,115 @@ public class PlayerServer {
             dataOut = out;
             objOut = objectOutput;
             inp = inputStream;
-            System.out.println("WTS Runnable created");
-            System.out.println("RFS Runnable created");
+            System.out.println("ServerHandler Runnable created");
         }
 
-        //send coordinates
-        //while loop to ensure coordinates are constantly updated
-        //use sleep to not overwhelm the thread
-        //constantly receive the values
         @Override
         public void run() {
-//            do {
-//                line = receiveMessage();
-//
-//                if (line != null) {
-//                    handleClientResponse(line);
-//                }
-//
-//                if (line.equals("CLOSE")) {
-//                    break;
-//                }
-//
-//                try {
-//                    Thread.sleep(1);
-//                } catch (InterruptedException e) {
-//                }
-//            } while (true);
+//           // Write data to the socket
 
-            try {
-                while(true) {
-                    sendOwnKart();
-                    receiveEnemyKart();
+            initialise();
+            responseLine = "pong";
+
+            do {
+                responseLine = receiveMessage();
+                if (responseLine != null) {
+                    System.out.println("SERVER: " + responseLine);
+                    handleServerResponse(responseLine);
                 }
-            } catch (IOException ex) {
-                System.out.println("IOException from RFS run ()");
-            }
-//
+
+                if (responseLine != null & responseLine.equals("other_player_left_game")) {
+                    shutdownClient();
+                    break;
+                }
+
+            } while (true);
         }
-        //message from server that notifies clients we can start
-        //we want second player to connect before we send that string
+
+
         public void waitForStartMsg() {
             try {
                 String startMsg = dataIn.readUTF();
                 System.out.println("Message from server: " + startMsg);
-                Thread readThread = new Thread(runnable);
-                Thread writeThread = new Thread (runnable);
-                readThread.start();
-                writeThread.start();
+                Thread thread = new Thread (serverHandler);
+                thread.start();
+
             } catch (IOException ex) {
-                System.out.println("IOException from waitForStartMsg()");
+                System.out.println("IOException from ServerHandler waitForStartMsg()");
             }
         }
 
-        public void receiveEnemyKart() throws IOException {
-            int foreignX = dataIn.readInt();
-            int foreignY = dataIn.readInt();
-            int foreignDirection = dataIn.readInt();
+        public void leftGame(){
+            sendMessage("client_left_game");
+        }
 
-            if(foreignKart != null){
-                foreignKart.setPositionX(foreignX);
-                foreignKart.setPositionY(foreignY);
-                foreignKart.setKartDirection(foreignDirection);
+        public void receiveEnemyKart() {
+            try {
+                int foreignX = dataIn.readInt();
+                int foreignY = dataIn.readInt();
+                int foreignDirection = dataIn.readInt();
+                if(foreignKart != null){
+                    foreignKart.setPositionX(foreignX);
+                    foreignKart.setPositionY(foreignY);
+                    foreignKart.setKartDirection(foreignDirection);
+                }
+            } catch (IOException ex) {
+                System.out.println("IOException from ServerHandler receiveEnemyKart()");
             }
         }
 
         public void sendOwnKart() throws IOException {
-            if (ownKart != null) {
-                dataOut.writeInt(ownKart.getPositionX());
-                dataOut.writeInt(ownKart.getPositionY());
-                dataOut.writeInt(ownKart.getKartDirection());
-                dataOut.flush();
+
+                if (ownKart != null) {
+                    dataOut.writeInt(ownKart.getPositionX());
+                    dataOut.writeInt(ownKart.getPositionY());
+                    dataOut.writeInt(ownKart.getKartDirection());
+                    dataOut.flush();
+                }
+//                sendMessage("own_kart_update");
+//                sendKart();
+//                receiveForeignKart();
+//            try {
+//                Thread.sleep(25);
+//            } catch (InterruptedException ex) {
+//                System.out.println("InterruptedException from waitForStartMsg() threadsleep");
+//            }
+        }
+
+        public void initialise() {
+            // initialise our client's own kart object
+    //        ownKart = new Kart(kartType);
+            sendMessage("ping");
+//            sendKart();
+//            sendMessage("own_kart_update");
+//            receiveForeignKart();
+        }
+
+        private void sendKart() {
+                try {
+                    objOut.writeObject(ownKart);
+                    objOut.flush();
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
             }
+    //    private void sendOwnKart() {
+    //        sendMessage("own_kart_update");
+    //        sendKart();
+    //        receiveForeignKart();
+    //    }
+        private void receiveOwnKart() {
             try {
-                Thread.sleep(25);
-            } catch (InterruptedException ex) {
-                System.out.println("InterruptedException from WTS run ()");
+                ownKart = (Kart) objIn.readObject();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        private void receiveForeignKart() {
+            try {
+                foreignKart = (Kart) objIn.readObject();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
             }
         }
         private String receiveMessage() {
@@ -421,36 +460,51 @@ public class PlayerServer {
                 return null;
             }
         }
-        private void handleClientResponse(String response) {
-            System.out.println("CLIENT " + kartType + " SAID: " + response);
+        private void sendMessage(String message) {
+                try {
+                    dataOut.writeBytes(message + "\n");
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        private static void shutdownClient() {
+                // shutdown script
+                System.exit(0);
+            }
 
-            // "identify red" => [ "identify", "red" ]
-            // "kart_update" => [ "kart_update" ]
-            String[] responseParts = response.split(" ");
-
-            switch (responseParts[0]) {
-                case "ping":
-
+        private void handleServerResponse(String response) {
+            switch (response) {
+                case "pong":
+                    //test
+                    sendMessage("pong");
                     try {
                         Thread.sleep(1000);
                     } catch (Exception e) {
                     }
-
-                    String msg;
-
-//                msg = sendMessage("pong");
-//                sendMessage("pong");
-//                tcpServer.displayGameUpdate(msg);
-                    break;
-
-                case "identify":
-//                    kartType = responseParts[1];
-//                    receiveKart();
                     break;
 
                 case "own_kart_update":
-//                    receiveKart();
-//                    sendForeignKart();
+//                    receiveOwnKart();
+//                    sendOwnKart();
+//                    sendMessage("foreign_kart_update");
+                    try {
+                        Thread.sleep(1000);
+                    } catch (Exception e) {
+                    }
+                    break;
+
+                case "foreign_kart_update":
+//                    receiveForeignKart();
+//                    sendOwnKart();
+//                    sendMessage("own_kart_update");
+                    break;
+
+                case "karts_crashed":
+                    break;
+                    //if blue kart wins
+                case "blue_kart_won":
+                    break;
+                case "white_kart_won":
                     break;
             }
         }
@@ -471,10 +525,8 @@ public class PlayerServer {
             System.err.println(errorMessage);
             return;
         }
-
         playerServer.connectToServer();
         //set up gui after connection to server is successful
         playerServer.setUpGUI();
     }
 }
-

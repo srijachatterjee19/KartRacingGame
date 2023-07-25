@@ -49,12 +49,12 @@ public class Game {
         whiteCounter = kart2.lapCounter(rectangle1,rectangle2,rectangle3,rectangle4);
 
         if (blueCounter > whiteCounter && blueCounter == 4) {
-            winStatus = "Blue kart won the race!!!";
+            winStatus = "blue_kart_won";
             System.out.println("Blue kart won the race!!!!");
         }
         else if (whiteCounter > blueCounter && whiteCounter == 4) {
-            winStatus = "White Kart won the race!!!";
-            System.out.println("White car won the race!!!!");
+            winStatus = "white_kart_won";
+            System.out.println("hite car won the race!!!!");
         }
         return winStatus;
     }

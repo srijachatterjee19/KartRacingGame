@@ -22,12 +22,16 @@ public class GameServer {
     private Kart kartBlue = null;
     private Kart kartWhite = null;
     private RaceTrack raceTrack;
+    private Game game;
 
     //Runnables to read and write to the players
     private ReadFromClient ReadRunnable1;
     private ReadFromClient ReadRunnable2;
     private WriteToClient WriteRunnable1;
     private WriteToClient WriteRunnable2;
+
+    private ClientHandler handler1;
+    private ClientHandler handler2;
 
     private int kart1Direction, Kart2Direction; //store kart direction for each player to send out to other player
     private int kart1PostionX, kart1PositionY, kart2PositionX, kart2PositionY; //store kart co-ordinates for each player to send out to other player
@@ -54,7 +58,7 @@ public class GameServer {
         kart1Direction = 0;
         Kart2Direction = 0;
         raceTrack = new RaceTrack();
-
+        game = new Game();
         // Try to open a server socket on port 4000
         try {
             serverSocket = new ServerSocket(45371);
@@ -106,29 +110,41 @@ public class GameServer {
                 ReadFromClient rfc = new ReadFromClient(numPlayers, in, objectInput, inputStream);
                 WriteToClient wtc = new WriteToClient(numPlayers, out, objectOutput);
 
+                //client handler object
+                ClientHandler handler = new ClientHandler(numPlayers,in,objectInput,inputStream,out, objectOutput,game);
+
                 //if you are the player ID is 1, create kart objects,assign runnables and socket
                 if (numPlayers == 1) {
                     kartBlue = new Kart("BlueKart", 0, 0, 380, 550);
                     socket1 = s;
-                    ReadRunnable1 = rfc;
-                    WriteRunnable1 = wtc;
+//                    ReadRunnable1 = rfc;
+//                    WriteRunnable1 = wtc;
+                    handler1 = handler;
                 } else {
                     kartWhite = new Kart("WhiteKart", 0, 0, 380, 500);
                     socket2 = s;
-                    ReadRunnable2 = rfc;
-                    WriteRunnable2 = wtc;
+//                    ReadRunnable2 = rfc;
+//                    WriteRunnable2 = wtc;
+                    handler2 = handler;
 
                     //send start message to the players "We now have 2 players. Go!"
                     //we want to send the start message after the second client has connected
                     //The player waits for the start message, then starts the player threads
-                    WriteRunnable1.sendStartMsg();
-                    WriteRunnable2.sendStartMsg();
+//                    WriteRunnable1.sendStartMsg();
+//                    WriteRunnable2.sendStartMsg();
+                    handler1.sendStartMsg();
+                    handler2.sendStartMsg();
 
                     //after both players have connected we can start the threads for reading and writing to the both players
-                    Thread readThread1 = new Thread(ReadRunnable1);
-                    Thread readThread2 = new Thread(ReadRunnable2);
-                    readThread1.start();
-                    readThread2.start();
+//                    Thread readThread1 = new Thread(ReadRunnable1);
+//                    Thread readThread2 = new Thread(ReadRunnable2);
+//                    readThread1.start();
+//                    readThread2.start();
+//
+//                    Thread thread1 = new Thread(handler1);
+//                    Thread thread2 = new Thread(handler2);
+//                    thread1.start();
+//                    thread2.start();
 
                     Thread writeThread1 = new Thread(WriteRunnable1);
                     Thread writeThread2 = new Thread(WriteRunnable2);
@@ -148,55 +164,12 @@ public class GameServer {
         gameGui = new GameServerGui(this);
         gameGui.setPreferredSize(new Dimension(850, 750));
         gameGui.setTitle("Game Server");
-        GamePanel panel = new GamePanel();
+        GamePanel panel = new GamePanel(raceTrack,kartBlue,kartWhite);
         gameGui.add(panel);
         gameGui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gameGui.pack();
         gameGui.setVisible(true);
     }
-
-    public class GamePanel extends JPanel implements ActionListener {
-
-        private String whichKartWonMessage = "";
-        private String kartsCrashedMessage = "";
-
-        //timer is created and started
-        public GamePanel() {
-            Timer gameTimer = new Timer(10, this); //to update game
-            gameTimer.start();
-        }
-
-        //The racetrack and the karts are painted on the window
-        public void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            raceTrack.drawRaceTrack(g);
-            kartBlue.kartPositioned(g);
-            kartWhite.kartPositioned(g);
-            repaint();
-        }
-
-        //actionPerformed repaints the window
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            repaint();
-        }
-    }
-
-    public class GameServerGui extends JFrame {
-        public GameServerGui(GameServer gameServer) {
-            setTitle("Game Server");
-            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            setSize(850, 650);
-            setVisible(true);
-        }
-
-        //call in server to update
-        //this method will be called from the run() to update the labels when karts win/crash
-        public synchronized void updateGame() {
-//            System.out.println("update to jframe received");
-        }
-    }
-
 
     //send out the co-ordinates
     //while loop to ensure co-ordinates are constantly updated
@@ -325,6 +298,217 @@ public class GameServer {
         }
     }
 
+    //receives the co-ordinates from client
+    public class ClientHandler implements Runnable {
+        private int playerID;
+        private DataInputStream dataIn;
+        private ObjectInput objIn;
+        private BufferedReader inp;
+        private DataOutputStream dataOut;
+        private ObjectOutput objectOut;
+        private String line;
+        private Game g;
+
+        public ClientHandler(int pid, DataInputStream in, ObjectInput objectInput, BufferedReader inputStream,DataOutputStream out, ObjectOutput objectOutput,Game game) {
+            playerID = pid;
+            dataIn = in;
+            objIn = objectInput;
+            inp = inputStream;
+            dataOut = out;
+            objectOut = objectOutput;
+            g = game;
+            System.out.println("ClientHandler Runnable" + playerID + " Runnable created");
+
+        }
+
+        public void run() {
+
+            if(kartBlue != null && kartWhite != null){
+                if(g.kartsCrashed(kartBlue,kartWhite) == true){
+                    sendMessage("karts_crashed");
+                }
+                if(g.hasWon(kartBlue,kartWhite) != null){
+                    sendMessage(g.hasWon(kartBlue,kartWhite));
+                }
+            }
+
+            try {
+                do {
+                    line = receiveMessage();
+                    sendMessage("pong");
+//                    updateKarts();
+//                    sendEnemyKart();
+
+                    if (line != null) {
+                        handleClientResponse(line);
+                    }
+
+                    if (line.equals("client_left_game")) {
+                        sendMessage("other_player_left_game");
+                        break;
+                    }
+
+//                    try {
+//                        Thread.sleep(1);
+//                    } catch (InterruptedException e) {
+//                    }
+                } while (true);
+
+            } catch (Exception e) {
+                System.out.println("ClientHandler Exception: " + e.getMessage());
+            }
+        }
+
+        private void handleClientResponse(String response) {
+            System.out.println("CLIENT " + " SAID: " + response);
+            // "identify red" => [ "identify", "red" ]
+            // "kart_update" => [ "kart_update" ]
+            String[] responseParts = response.split(" ");
+
+            switch (responseParts[0]) {
+                case "ping":
+                    sendMessage("pong");
+                    break;
+                case "kart_update":
+//                    kartType = responseParts[1];
+//                    receiveKart();
+                    break;
+                case "own_kart_update":
+                    //when player kart is received, send foreign kart
+//                    receiveKart();
+//                    sendForeignKart();
+//                    sendMessage("foreign_kart_update");
+                    break;
+            }
+        }
+        //send start message to client to start their threads
+        public void sendStartMsg() {
+            try {
+                dataOut.writeUTF("We now have 2 players. Go!");
+            } catch (IOException ex) {
+                System.out.println("IOException from sendStartMsg()");
+            }
+        }
+        //updates the karts in its own game window
+        public void updateKarts() throws IOException {
+            //receive kart objects and set it to player 1
+            if (playerID == 1) {
+                kart1PostionX = dataIn.readInt();
+                kart1PositionY = dataIn.readInt();
+
+                kart1Direction = dataIn.readInt();
+                kartBlue.setPositionX(dataIn.readInt());
+                kartBlue.setPositionY(dataIn.readInt());
+                kartBlue.setKartDirection(dataIn.readInt());
+            } else {
+                kart2PositionX = dataIn.readInt();
+                kart2PositionY = dataIn.readInt();
+                Kart2Direction = dataIn.readInt();
+
+
+                kartWhite.setPositionX(dataIn.readInt());
+                kartWhite.setPositionY(dataIn.readInt());
+                kartWhite.setKartDirection(dataIn.readInt());
+            }
+        }
+        //send co-ordinates of karts to each player, player 2 receives kart1 updates and player 1 receives kart 2
+        public void sendEnemyKart() throws IOException {
+            if (playerID == 1) {
+                dataOut.writeInt(kart2PositionX);
+                dataOut.writeInt(kart2PositionY);
+                dataOut.writeInt(Kart2Direction);
+                dataOut.flush();
+            } else {
+                dataOut.writeInt(kart1PostionX);
+                dataOut.writeInt(kart1PositionY);
+                dataOut.writeInt(kart1Direction);
+                dataOut.flush();
+            }
+        }
+
+
+        private String sendMessage(String message) {
+
+            try {
+                dataOut.writeBytes(message + "\n");
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+            return message;
+        }
+        private String receiveMessage() {
+            try {
+                return dataIn.readLine();
+            } catch (Exception e) {
+                System.out.println("Exception from GameServer receiveMessage()");
+                System.out.println(e.getMessage());
+                return null;
+            }
+        }
+        private void sendKart(Kart kartToSend) {
+//            try {
+//                objectOut.writeObject(kartToSend);
+//                objectOut.flush();
+//            } catch (Exception e) {
+//                System.out.println(e.getMessage());
+//            }
+        }
+        private void sendForeignKart() {
+//            Kart kartToSend = null;
+//
+//            sendMessage("foreign_kart_update");
+//
+//            switch (kartType) {
+//                case "blue":
+//                    kartToSend = kartRed;
+//                    break;
+//
+//                case "red":
+//                    kartToSend = kartBlue;
+//                    break;
+//            }
+//
+//            sendKart(kartToSend);
+        }
+        private void sendOwnKart() {
+//            Kart kartToSend = null;
+//
+//            sendMessage("own_kart_update");
+//
+//            switch (kartType) {
+//                case "blue":
+//                    kartToSend = kartBlue;
+//                    break;
+//
+//                case "red":
+//                    kartToSend = kartRed;
+//                    break;
+//            }
+//
+//            sendKart(kartToSend);
+        }
+        private void receiveKart() {
+//            Kart inputKart = null;
+//
+//            try {
+//                inputKart = (Kart) objectOut.readObject();
+//            } catch (Exception e) {
+//                System.out.println(e.getMessage());
+//            }
+//
+//            switch (kartType) {
+//                case "blue":
+//                    kartBlue = inputKart;
+//                    break;
+//
+//                case "red":
+//                    kartRed = inputKart;
+//                    break;
+//            }
+        }
+
+
+    }
 
     public static void main(String[] args) {
         GameServer gs = new GameServer();
