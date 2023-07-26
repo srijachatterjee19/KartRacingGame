@@ -1,8 +1,10 @@
+package Server;
+
 import javax.swing.*;
 
 public class GameServerGui extends JFrame {
     public GameServerGui(GameServer gameServer) {
-        setTitle("Game Server");
+        setTitle("Shared.Game Server");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(850, 650);
         setVisible(true);

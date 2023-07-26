@@ -1,3 +1,5 @@
+package Shared;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
@@ -103,7 +105,7 @@ public class Kart  implements Serializable {
         //if speed is more than 0 and less than 100
         //increase speed by 5
         if (this.getKartSpeed() >= 0 && this.getKartSpeed() <= 100) {
-            this.setKartSpeed(this.getKartSpeed() + 2);
+            this.setKartSpeed(this.getKartSpeed() + 5);
         }
     }
 
@@ -112,7 +114,7 @@ public class Kart  implements Serializable {
         //if speed is more than 0 and less than 100
         //decrease speed by 5
         if (this.getKartSpeed() > 0 && this.getKartSpeed() <= 100) {
-            this.setKartSpeed(this.getKartSpeed() - 2);
+            this.setKartSpeed(this.getKartSpeed() - 5);
         }
     }
 

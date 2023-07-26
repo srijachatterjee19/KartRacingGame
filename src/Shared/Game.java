@@ -1,3 +1,8 @@
+package Shared;
+
+import Shared.Kart;
+import Shared.RaceTrack;
+
 import javax.sound.sampled.Clip;
 import java.awt.*;
 import java.awt.geom.Line2D;
@@ -35,7 +40,7 @@ public class Game {
     }
 
     //when one of the kart wins,returns message stating which kart wins
-    public String hasWon(Kart kart1,Kart kart2){
+    public String hasWon(Kart kart1, Kart kart2){
         //count laps
         int blueCounter = 0;
         int whiteCounter = 0;

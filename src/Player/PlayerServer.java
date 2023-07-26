@@ -1,3 +1,10 @@
+package Player;
+
+import Shared.Game;
+import Shared.Kart;
+import Shared.RaceTrack;
+import Shared.DrawingComponent;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -84,12 +91,12 @@ public class PlayerServer {
 
     public void setUpGUI() {
         createKarts(); //create the kart objects
-        gameGui = new PlayerFrameGui(this);
+        gameGui = new PlayerFrameGui(this,playerID);
         contentPane = gameGui.getContentPane();
         gameGui.setTitle("Player #" + playerID);
         gameGui.setPreferredSize(new Dimension(850, 750));
         contentPane.setPreferredSize(new Dimension(850, 650));
-        dc = new DrawingComponent();
+        dc = new DrawingComponent(raceTrack,ownKart,foreignKart);
         contentPane.add(dc);
         gameGui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gameGui.pack();
@@ -160,24 +167,6 @@ public class PlayerServer {
         contentPane.setFocusable(true);
     }
 
-    //JComponent will draw the karts and the racetrack and keep re-painting it
-    public class DrawingComponent extends JComponent {
-        protected void paintComponent(Graphics g) {
-            raceTrack.drawRaceTrack(g);
-            ownKart.kartPositioned(g);
-            foreignKart.kartPositioned(g);
-            repaint();
-        }
-    }
-    public class PlayerFrameGui extends JFrame {
-        public PlayerFrameGui(PlayerServer playerFrame) {
-            setTitle("Player #" + playerID);
-            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            setSize(850, 650);
-            setVisible(true);
-        }
-    }
-
     public class ReadFromServer implements Runnable {
         private DataInputStream dataIn;
 
@@ -211,7 +200,7 @@ public class PlayerServer {
             }
         }
 
-        // reading information from the Game server to update
+        // reading information from the Shared.Game server to update
         // other player's kart co-ordinate and direction
         public void receiveEnemyKart() throws IOException {
 
@@ -253,7 +242,7 @@ public class PlayerServer {
 
         }
 
-        //send own kart co-ordinates to the Game Server
+        //send own kart co-ordinates to the Shared.Game Server
         public void sendOwnKart() throws IOException {
             if (ownKart != null) {
                 dataOut.writeInt(ownKart.getPositionX());
@@ -271,7 +260,7 @@ public class PlayerServer {
 
     public static void main(String[] args) {
         PlayerServer playerServer = new PlayerServer();
-        String errorMessage = "Kart designation need to be provided as either 'blue' or 'white'.";
+        String errorMessage = "Shared.Kart designation need to be provided as either 'blue' or 'white'.";
 
         if (args.length == 1) {
             kartType = args[0];

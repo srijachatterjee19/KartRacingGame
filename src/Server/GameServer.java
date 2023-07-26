@@ -1,10 +1,19 @@
+package Server;
+
+import Shared.Game;
+import Shared.Kart;
+import Shared.RaceTrack;
+import Shared.DrawingComponent;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 /*
-The Game Server is responsible for updating the co-ordinates for both the players
+The Shared.Game Server is responsible for updating the co-ordinates for both the players
 input streams used to receive messages from the clients after it receives the co-ordinates, it updates them
  */
 
@@ -15,6 +24,10 @@ public class GameServer {
 
     //Server JFrame
     private GameServerGui gameGui;
+    private Container contentPane;
+    private DrawingComponent dc;
+    private Timer animationTimer;
+
     //kart objects
     private Kart kartBlue = null;
     private Kart kartWhite = null;
@@ -57,10 +70,9 @@ public class GameServer {
         try {
             serverSocket = new ServerSocket(45371);
         } catch (IOException e) {
-            System.out.println("IOException from GameServer constructor");
+            System.out.println("IOException from Server.GameServer constructor");
         }
     }
-
 
     public void acceptConnections() {
         try {
@@ -128,17 +140,30 @@ public class GameServer {
         }
     }
 
-    public void setUpGui() {
-        //Create server game gui JFrame and pass the current instance of the GameServer class
-        // add the game panel
+    public void setUpGUI(){
         gameGui = new GameServerGui(this);
         gameGui.setPreferredSize(new Dimension(850, 750));
-        gameGui.setTitle("Game Server");
-        GamePanel panel = new GamePanel(raceTrack,kartBlue,kartWhite);
-        gameGui.add(panel);
+        gameGui.setTitle("Player #" + numPlayers);
+        contentPane = gameGui.getContentPane();
+        contentPane.setPreferredSize(new Dimension(850, 650));
+        dc = new DrawingComponent(raceTrack,kartBlue,kartWhite);
+        contentPane.add(dc);
         gameGui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gameGui.pack();
         gameGui.setVisible(true);
+        setUpAnimationTimer();
+    }
+
+    //the game visuals are updated here such as when the kart starts moving, collide with racetrack boundary or crash into other kart
+    public void setUpAnimationTimer() {
+        int interval = 10;
+        ActionListener al = new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                dc.repaint();
+            }
+        };
+        animationTimer = new Timer(interval, al);
+        animationTimer.start();
     }
 
     //send out the co-ordinates
@@ -252,7 +277,7 @@ public class GameServer {
             try {
                 return dataIn.readLine();
             } catch (Exception e) {
-                System.out.println("Exception from GameServer receiveMessage()");
+                System.out.println("Exception from Server.GameServer receiveMessage()");
                 System.out.println(e.getMessage());
                 return null;
             }
@@ -262,6 +287,6 @@ public class GameServer {
     public static void main(String[] args) {
         GameServer gs = new GameServer();
         gs.acceptConnections();
-        gs.setUpGui();
+        gs.setUpGUI();
     }
 }

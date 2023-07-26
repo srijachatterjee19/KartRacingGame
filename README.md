@@ -1,6 +1,6 @@
 #  MULTI-PLAYER KART RACING GAME  🎮
 
-### Welcome to the Kart Racing Game! 🏎️
+### Welcome to the Shared.Kart Racing Shared.Game! 🏎️
 
 In this multi-player game two players can compete against each other in go-karts.The goal is to finish each race as quickly and winning the game.
 This document will provide information about the game.This game consists of 2 karts which are controlled by 4 sets of keys for each player.
@@ -16,10 +16,10 @@ The game was tested on a single computer, three configurations were created for 
 
 <br>
 
-|        **Player1(Blue Kart)**        |       **Player2(White Kart)**        |
+|        **Player1(Blue Shared.Kart)**        |       **Player2(White Shared.Kart)**        |
 |:------------------------------------:|:------------------------------------:|
 | <img src="src/player1.png" width="400"/> | <img src="src/player2.png" width="400"/> |
-|           **Game Server**            |                      |
+|           **Shared.Game Server**            |                      |
 | <img src="src/server.png" width="400"/>  | 
 
 
@@ -30,7 +30,7 @@ The game was tested on a single computer, three configurations were created for 
 ## How to Play 🕹️
 ### Controls 🎮
 
-|White Kart| Blue Kart| Description|  
+|White Shared.Kart| Blue Shared.Kart| Description|  
 |:----------:|:----------:|:----------:| 
 |W|⬆|FORWARD|  
 |A|⬅|ROTATE LEFT by 22.5°|  
@@ -44,10 +44,10 @@ The game was tested on a single computer, three configurations were created for 
 2. Include the source files inside the `src` directory
 3. Start the server first by running src/GameFrame.java ⚙
 4. Edit Run/Debug configurations > click the top left "+" button saying Add new configuration > add 3 new application configuration
-5. Name the kart "Blue kart", Add "PlayerServer" as class, "BlueKart" as a parameter
-5. Second configuration, "White kart", Add "PlayerServer" as class, "WhiteKart" as a parameter
-5. Third configuration, "Game Server", Add "PlayerServer" as class. 
-6. First run the Game Server, then after two client configurations are run all the windows will appear as seen in the above table of images.  
+5. Name the kart "Blue kart", Add "Player.PlayerServer" as class, "BlueKart" as a parameter
+5. Second configuration, "White kart", Add "Player.PlayerServer" as class, "WhiteKart" as a parameter
+5. Third configuration, "Shared.Game Server", Add "Player.PlayerServer" as class. 
+6. First run the Shared.Game Server, then after two client configurations are run all the windows will appear as seen in the above table of images.  
 4. Start Playing! 👾
 
 

@@ -1,3 +1,5 @@
+package Shared;
+
 import java.awt.*;
 import java.awt.geom.Line2D;
 import java.io.Serializable;
