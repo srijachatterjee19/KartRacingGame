@@ -143,7 +143,6 @@ public class GameServer {
     public void setUpGUI(){
         gameGui = new GameServerGui(this);
         gameGui.setPreferredSize(new Dimension(850, 750));
-        gameGui.setTitle("Player #" + numPlayers);
         contentPane = gameGui.getContentPane();
         contentPane.setPreferredSize(new Dimension(850, 650));
         dc = new DrawingComponent(raceTrack,kartBlue,kartWhite);
