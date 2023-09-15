@@ -1,6 +1,6 @@
 #  MULTI-PLAYER KART RACING GAME  🎮
 
-### Welcome to the Shared.Kart Racing Shared.Game! 🏎️
+### Welcome to the Kart Racing Game! 🏎️
 
 In this multi-player game two players can compete against each other in go-karts.The goal is to finish each race as quickly and winning the game.
 This document will provide information about the game.This game consists of 2 karts which are controlled by 4 sets of keys for each player.
