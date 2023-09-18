@@ -11,16 +11,6 @@ The game was tested on a single computer, three configurations were created for 
 - Netbeans IDE 17.0.6+10-b829.5 aarch64
 - JDK 20.0.1
 
-## How to Play 🕹️
-### Controls 🎮
-
-|White Kart| Blue Kart| Description|  
-|:----------:|:----------:|:----------:| 
-|W|⬆|FORWARD|  
-|A|⬅|ROTATE LEFT by 22.5°|  
-|D|➡|ROTATE RIGHT by 22.5°|  
-|S|⬇|BACKWARD|  
-
 
 ### Getting Started✅
 #### Setting Up
