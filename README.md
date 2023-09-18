@@ -7,11 +7,6 @@ This document will provide information about the game.This game consists of 2 ka
 The game was tested on a single computer, three configurations were created for each component, 2 clients and 1 server.
 
 
-## Built using 🔨
-- Netbeans IDE 17.0.6+10-b829.5 aarch64
-- JDK 20.0.1
-
-
 ### Getting Started✅
 #### Setting Up
 1. Create a new project
@@ -24,6 +19,10 @@ The game was tested on a single computer, three configurations were created for 
 6. First run the Shared.Game Server, then after two client configurations are run all the windows will appear as seen in the above table of images.  
 4. Start Playing! 👾
 
+
+## Built using 🔨
+- Netbeans IDE 17.0.6+10-b829.5 aarch64
+- JDK 20.0.1
 
 
 
