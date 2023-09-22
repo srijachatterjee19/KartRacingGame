@@ -18,10 +18,10 @@ The game was tested on a single computer, three configurations were created for 
 2. Include the source files inside the `src` directory
 3. Start the server first by running src/GameFrame.java ⚙
 4. Edit Run/Debug configurations > click the top left "+" button saying Add new configuration > add 3 new application configuration
-5. Name the kart "Blue kart", Add "Player.PlayerServer" as class, "BlueKart" as a parameter
-5. Second configuration, "White kart", Add "Player.PlayerServer" as class, "WhiteKart" as a parameter
-5. Third configuration, "Shared.Game Server", Add "Player.PlayerServer" as class. 
-6. First run the Shared.Game Server, then after two client configurations are run all the windows will appear as seen in the above table of images.  
+5. Name the kart `Blue kart`, Add `PlayerServer` as class, `BlueKart` as a parameter
+5. Second configuration, `White kart`, Add `PlayerServer` as class, `WhiteKart` as a parameter
+5. Third configuration, `Game Server`, Add `PlayerServer` as class. 
+6. First run the `Game Server`, then after two client configurations are run all the windows will appear as seen in the above table of images.  
 4. Start Playing! 👾
 
 
