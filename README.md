@@ -6,8 +6,11 @@ In this multi-player game two players can compete against each other in go-karts
 This document will provide information about the game.This game consists of 2 karts which are controlled by 4 sets of keys for each player.
 The game was tested on a single computer, three configurations were created for each component, 2 clients and 1 server.
 
-<img width="400" alt="gamewindow" src="https://github.com/srijachatterjee19/KartRacingGame/assets/84346422/1cac8d60-91e1-469c-a43c-ef1b0514d668">
-
+|        **Player1(Blue Kart)**        |       **Player2(White Kart)**        |
+|:------------------------------------:|:------------------------------------:|
+| <img src="src/player1.png" width="400"/> | <img src="src/player2.png" width="400"/> |
+|           **Game Server**            |                      |
+| <img src="src/server.png" width="400"/>  | 
 
 ### Getting Started✅
 #### Setting Up
